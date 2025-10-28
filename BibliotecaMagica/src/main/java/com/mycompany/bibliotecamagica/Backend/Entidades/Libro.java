@@ -16,6 +16,9 @@ public class Libro {
     private int anio;
     private int numCopias;
     private long isnbNum;
+    private boolean estado;
+    private String bibliotecaActual;
+    private String bibliotecaDestino;
 
     public String getTitulo() {
         return titulo;
@@ -71,6 +74,30 @@ public class Libro {
 
     public void setIsnbNum(long isnbNum) {
         this.isnbNum = isnbNum;
+    }
+
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public String getBibliotecaActual() {
+        return bibliotecaActual;
+    }
+
+    public void setBibliotecaActual(String bibliotecaActual) {
+        this.bibliotecaActual = bibliotecaActual;
+    }
+
+    public String getBibliotecaDestino() {
+        return bibliotecaDestino;
+    }
+
+    public void setBibliotecaDestino(String bibliotecaDestino) {
+        this.bibliotecaDestino = bibliotecaDestino;
     }
     
 }

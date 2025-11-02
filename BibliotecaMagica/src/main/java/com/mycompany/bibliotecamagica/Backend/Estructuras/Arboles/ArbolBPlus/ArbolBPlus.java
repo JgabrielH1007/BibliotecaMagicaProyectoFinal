@@ -138,14 +138,14 @@ public class ArbolBPlus {
         return new AbstractMap.SimpleEntry<>(nuevo, promoKey);
     }
 
-    public void buscarPorGenero(String genero, ListaEnlazada resultados) {
+    public void buscarPorGenero(String genero, List<Libro> resultados) {
         Nodo hoja = encontrarHoja(raiz, genero);
 
         while (hoja != null) {
             for (int i = 0; i < hoja.getClaves().size(); i++) {
                 if (hoja.getClaves().get(i).equalsIgnoreCase(genero)) {
                     for (Libro libro : hoja.getReg().get(i)) {
-                        resultados.agregarLibro(libro);
+                        resultados.add(libro);
                     }
                     return;
                 }

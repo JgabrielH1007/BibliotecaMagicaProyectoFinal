@@ -10,10 +10,10 @@ import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
  *
  * @author gabrielh
  */
-public class Nodo {
+public class NodoAVL {
     private Libro libro;
-    private Nodo izq;
-    private Nodo der;
+    private NodoAVL izq;
+    private NodoAVL der;
     private int altura;
     private int fe;
 
@@ -25,19 +25,19 @@ public class Nodo {
         this.libro = libro;
     }
 
-    public Nodo getIzq() {
+    public NodoAVL getIzq() {
         return izq;
     }
 
-    public void setIzq(Nodo izq) {
+    public void setIzq(NodoAVL izq) {
         this.izq = izq;
     }
 
-    public Nodo getDer() {
+    public NodoAVL getDer() {
         return der;
     }
 
-    public void setDer(Nodo der) {
+    public void setDer(NodoAVL der) {
         this.der = der;
     }
 

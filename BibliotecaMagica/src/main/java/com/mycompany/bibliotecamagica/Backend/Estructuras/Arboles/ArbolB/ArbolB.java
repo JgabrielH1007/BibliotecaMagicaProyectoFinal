@@ -6,6 +6,7 @@ package com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolB;
 
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Lista.ListaEnlazada;
+import java.util.List;
 import javax.swing.JOptionPane;
 
 /**
@@ -20,7 +21,7 @@ public class ArbolB {
         this.raiz=null;
     }
     
-    public void buscarRango(int anioInicial, int anioFinal, ListaEnlazada resultados){
+    public void buscarRango(int anioInicial, int anioFinal, List<Libro> resultados){
         if(raiz!=null){
             raiz.buscarPorRango(anioInicial, anioFinal, resultados);
         }

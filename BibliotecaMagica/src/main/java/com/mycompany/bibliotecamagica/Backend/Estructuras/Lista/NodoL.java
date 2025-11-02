@@ -10,9 +10,9 @@ import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
  *
  * @author gabrielh
  */
-public class Nodo {
+public class NodoL {
     private Libro libro;
-    private Nodo siguiente;
+    private NodoL siguiente;
 
     public Libro getLibro() {
         return libro;
@@ -22,11 +22,11 @@ public class Nodo {
         this.libro = libro;
     }
 
-    public Nodo getSiguiente() {
+    public NodoL getSiguiente() {
         return siguiente;
     }
 
-    public void setSiguiente(Nodo siguiente) {
+    public void setSiguiente(NodoL siguiente) {
         this.siguiente = siguiente;
     }
  

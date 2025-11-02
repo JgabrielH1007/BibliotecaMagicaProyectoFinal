@@ -5,6 +5,8 @@
 package com.mycompany.bibliotecamagica.Backend.Estructuras.Cola;
 
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -45,5 +47,15 @@ public class Cola {
     
     public int tamanio(){
         return tamanio;
+    }
+    
+    public List<Libro> toList() {
+        List<Libro> lista = new ArrayList<>();
+        Nodo actual = frente; // frente de la cola
+        while (actual != null) {
+            lista.add(actual.getLibro());
+            actual = actual.getSiguiente();
+        }
+        return lista;
     }
 }

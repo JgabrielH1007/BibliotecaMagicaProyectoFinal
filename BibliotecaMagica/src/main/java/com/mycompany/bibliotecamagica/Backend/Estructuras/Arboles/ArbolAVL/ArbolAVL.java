@@ -2,7 +2,7 @@ package com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolAVL;
 
 
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
-import com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolAVL.Nodo;
+import com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolAVL.NodoAVL;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Lista.ListaEnlazada;
 
 /*
@@ -15,33 +15,33 @@ import com.mycompany.bibliotecamagica.Backend.Estructuras.Lista.ListaEnlazada;
  * @author gabrielh
  */
 public class ArbolAVL {
-    private Nodo raiz;
+    private NodoAVL raiz;
     
     //Misma implementacion del proyecto pasado
-    private int obtenerAltura(Nodo nodo){
+    private int obtenerAltura(NodoAVL nodo){
         if(nodo == null){
             return 0;
         }
         return nodo.getAltura();
     }
     
-    private int obtenerFe(Nodo nodo){
+    private int obtenerFe(NodoAVL nodo){
         if(nodo == null){
             return 0;
         }
         return obtenerAltura(nodo.getIzq()) - obtenerAltura(nodo.getDer());
     }
     
-    private void actualizarAlturaYFe(Nodo nodo){
+    private void actualizarAlturaYFe(NodoAVL nodo){
         if(nodo != null){
             nodo.setAltura(1 + Math.max(obtenerAltura(nodo.getIzq()), obtenerAltura(nodo.getDer())));
             nodo.setFe(obtenerFe(nodo));
         }
     }
     
-    private Nodo rotacionDD(Nodo ref){ 
-        Nodo nodo = ref;
-        Nodo nodo1 = ref.getDer();
+    private NodoAVL rotacionDD(NodoAVL ref){ 
+        NodoAVL nodo = ref;
+        NodoAVL nodo1 = ref.getDer();
         nodo.setDer(nodo1.getIzq());
         nodo1.setIzq(nodo);
         actualizarAlturaYFe(nodo);
@@ -49,9 +49,9 @@ public class ArbolAVL {
         return nodo1;
     }
     
-    private Nodo rotacionII(Nodo ref){
-        Nodo nodo = ref;
-        Nodo nodo1 = ref.getIzq();
+    private NodoAVL rotacionII(NodoAVL ref){
+        NodoAVL nodo = ref;
+        NodoAVL nodo1 = ref.getIzq();
         nodo.setIzq(nodo1.getDer());
         nodo1.setDer(nodo);
         actualizarAlturaYFe(nodo);
@@ -59,10 +59,10 @@ public class ArbolAVL {
         return nodo1;
     }
     
-    private Nodo rotacionID(Nodo ref){
-        Nodo nodo = ref;
-        Nodo nodo1 = ref.getIzq();
-        Nodo nodo2 = nodo1.getDer();
+    private NodoAVL rotacionID(NodoAVL ref){
+        NodoAVL nodo = ref;
+        NodoAVL nodo1 = ref.getIzq();
+        NodoAVL nodo2 = nodo1.getDer();
         nodo.setIzq(nodo2.getDer());
         nodo1.setDer(nodo2.getIzq());
         nodo2.setDer(nodo);
@@ -73,10 +73,10 @@ public class ArbolAVL {
         return nodo2;
     }
     
-    private Nodo rotacionDI(Nodo ref){
-        Nodo nodo = ref;
-        Nodo nodo1 = ref.getDer();
-        Nodo nodo2 = nodo1.getIzq();
+    private NodoAVL rotacionDI(NodoAVL ref){
+        NodoAVL nodo = ref;
+        NodoAVL nodo1 = ref.getDer();
+        NodoAVL nodo2 = nodo1.getIzq();
         nodo.setDer(nodo2.getIzq());
         nodo1.setIzq(nodo2.getDer());
         nodo2.setIzq(nodo);
@@ -87,9 +87,9 @@ public class ArbolAVL {
         return nodo2;
     }
     
-    private Nodo insertarRecursivo(Nodo nodo, String titulo, Libro libro){
+    private NodoAVL insertarRecursivo(NodoAVL nodo, String titulo, Libro libro){
         if(nodo==null){
-            Nodo nuevoNodo = new Nodo();
+            NodoAVL nuevoNodo = new NodoAVL();
             nuevoNodo.setLibro(libro);
             return nuevoNodo;
         }
@@ -115,7 +115,7 @@ public class ArbolAVL {
         return nodo;
     }
     
-    private Nodo buscarRecursivo(Nodo nodo, String titulo){
+    private NodoAVL buscarRecursivo(NodoAVL nodo, String titulo){
         if(nodo == null || nodo.getLibro().getTitulo().equals(titulo)){
             return nodo;
         }
@@ -126,7 +126,7 @@ public class ArbolAVL {
         return buscarRecursivo(nodo.getDer(), titulo);
     }
     
-    private Nodo eliminarRecursivoTitulo(Nodo nodo, String titulo) {
+    private NodoAVL eliminarRecursivoTitulo(NodoAVL nodo, String titulo) {
         if (nodo == null) {
             return nodo;
         }
@@ -137,14 +137,14 @@ public class ArbolAVL {
             nodo.setDer(eliminarRecursivoTitulo(nodo.getDer(), titulo));
         } else {
             if (nodo.getIzq() == null || nodo.getDer() == null) {
-                Nodo temp = (nodo.getIzq() != null) ? nodo.getIzq() : nodo.getDer();
+                NodoAVL temp = (nodo.getIzq() != null) ? nodo.getIzq() : nodo.getDer();
                 if (temp == null) {
                     nodo = null;
                 } else {
                     nodo = temp;
                 }
             } else {
-                Nodo temp = nodo.getDer();
+                NodoAVL temp = nodo.getDer();
                 while (temp.getIzq() != null) {
                     temp = temp.getIzq();
                 }
@@ -174,7 +174,7 @@ public class ArbolAVL {
         return nodo;
     }
     
-    private void inOrdenRecursivo(Nodo nodo, ListaEnlazada inOrden){
+    private void inOrdenRecursivo(NodoAVL nodo, ListaEnlazada inOrden){
         if(nodo != null){
             inOrdenRecursivo(nodo.getIzq(), inOrden);
             inOrden.agregarLibro(nodo.getLibro());
@@ -192,7 +192,7 @@ public class ArbolAVL {
         raiz = eliminarRecursivoTitulo(raiz, titulo);
     }
     
-    public Nodo buscar(String titulo){
+    public NodoAVL buscar(String titulo){
         return buscarRecursivo(raiz, titulo);
     }
     
@@ -201,5 +201,9 @@ public class ArbolAVL {
     }
     
     //Aqui generare la grafica.
+
+    public NodoAVL getRaiz() {
+        return raiz;
+    }
     
 }

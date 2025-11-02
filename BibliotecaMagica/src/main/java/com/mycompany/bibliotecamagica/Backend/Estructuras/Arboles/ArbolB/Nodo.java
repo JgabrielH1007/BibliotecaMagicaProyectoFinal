@@ -28,14 +28,14 @@ public class Nodo {
         this.hijos = new ArrayList<>();
     }
     
-    public void buscarPorRango(int anioInicial, int anioFinal, ListaEnlazada resultados){
+    public void buscarPorRango(int anioInicial, int anioFinal, List<Libro> resultados){
         int i;
         for(i = 0; i<llaves.size();i++){
             if((!esHoja)){
                 hijos.get(i).buscarPorRango(anioInicial, anioFinal, resultados);
             }
             if (llaves.get(i).getAnio() >= anioInicial && llaves.get(i).getAnio() <= anioFinal) {
-                resultados.agregarLibro(llaves.get(i));
+                resultados.add(llaves.get(i));
             }        
         }
         if(!esHoja){

@@ -1,0 +1,4 @@
+digraph G {
+  node [shape=record, fontsize=10, style=filled, fillcolor="lightgoldenrod1"];
+  node1649891668 [label="<f0> | Realismo Mágico | <f1>"];
+}

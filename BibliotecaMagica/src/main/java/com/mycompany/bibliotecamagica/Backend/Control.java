@@ -298,23 +298,16 @@ public class Control {
         if (bActual.getId().equals(libro.getBibliotecaDestino())) {
             if (bActual.getColaIngreso() == null) bActual.setColaIngreso(new Cola());
             bActual.getColaIngreso().encolar(libro);
-            JOptionPane.showMessageDialog(null, 
-                "📥 Libro '" + libro.getTitulo() + "' en destino, encolado en ingreso de " + bActual.getNombre(),
-                "Ingreso de libro", JOptionPane.INFORMATION_MESSAGE);
+
         } else {
             if (bActual.getColaSalida() == null) bActual.setColaSalida(new Cola());
             bActual.getColaSalida().encolar(libro);
-            JOptionPane.showMessageDialog(null, 
-                "📦 Libro '" + libro.getTitulo() + "' en origen, encolado en salida de " + bActual.getNombre(),
-                "Salida de libro", JOptionPane.INFORMATION_MESSAGE);
+
         }
 
         if (gs == null || !gs.isRunning()) {
             gs = new GestorDeBiblioteca(gr, gr.getVertices());
             new Thread(gs).start();
-            JOptionPane.showMessageDialog(null, 
-                "🚀 Gestor de bibliotecas iniciado.",
-                "Simulación iniciada", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -381,44 +374,82 @@ public class Control {
     }
     
     public List<Libro> listarPorInser(ListaEnlazada lista) {
-        ListaEnlazada ordenada = lista.listarPorInserPorAutor();
+        List<Libro> datos = copiarLista(lista); 
 
-        List<Libro> resultado = new ArrayList<>();
-        NodoL actual = ordenada.getInicio();
-        while (actual != null) {
-            resultado.add(actual.getLibro());
-            actual = actual.getSiguiente();
+        for (int i = 1; i < datos.size(); i++) {
+            Libro key = datos.get(i);
+            int j = i - 1;
+            while (j >= 0 && datos.get(j).getAutor().compareToIgnoreCase(key.getAutor()) > 0) {
+                datos.set(j + 1, datos.get(j));
+                j--;
+            }
+            datos.set(j + 1, key);
         }
 
-        return resultado;
-    }
-
-    public List<Libro> listarPorAnio(ListaEnlazada lista){
-        ListaEnlazada ordenada = lista.listarPorInserPorAutor();
-
-        List<Libro> resultado = new ArrayList<>();
-        NodoL actual = ordenada.getInicio();
-        while (actual != null) {
-            resultado.add(actual.getLibro());
-            actual = actual.getSiguiente();
-        }
-
-        return resultado;
+        return datos;
     }
     
-    public List<Libro> listarPorQuick(ListaEnlazada lista){
-        ListaEnlazada ordenada = lista.listarPorQuickSortPorTitulo();
+    public List<Libro> listarPorAnio(ListaEnlazada lista) {
+        List<Libro> datos = copiarLista(lista);
 
-        List<Libro> resultado = new ArrayList<>();
-        NodoL actual = ordenada.getInicio();
-        while (actual != null) {
-            resultado.add(actual.getLibro());
-            actual = actual.getSiguiente();
+        int n = datos.size();
+        for (int gap = n / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < n; i++) {
+                Libro temp = datos.get(i);
+                int j = i;
+                while (j >= gap && datos.get(j - gap).getAnio() > temp.getAnio()) {
+                    datos.set(j, datos.get(j - gap));
+                    j -= gap;
+                }
+                datos.set(j, temp);
+            }
         }
-        return resultado;
+
+        return datos;
     }
 
 
-    
+
+    private List<Libro> copiarLista(ListaEnlazada lista) {
+        List<Libro> copia = new ArrayList<>();
+        NodoL actual = lista.getInicio();
+        while (actual != null) {
+            copia.add(actual.getLibro());
+            actual = actual.getSiguiente();
+        }
+        return copia;
+    }
+
+    public List<Libro> listarPorQuick(ListaEnlazada lista) {
+        List<Libro> datos = copiarLista(lista);
+        quickSortTitulo(datos, 0, datos.size() - 1);
+        return datos;
+    }
+
+    private void quickSortTitulo(List<Libro> arr, int low, int high) {
+        if (low < high) {
+            int p = particion(arr, low, high);
+            quickSortTitulo(arr, low, p - 1);
+            quickSortTitulo(arr, p + 1, high);
+        }
+    }
+
+    private int particion(List<Libro> arr, int low, int high) {
+        String pivote = arr.get(high).getTitulo();
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (arr.get(j).getTitulo().compareToIgnoreCase(pivote) <= 0) {
+                i++;
+                Libro tmp = arr.get(i);
+                arr.set(i, arr.get(j));
+                arr.set(j, tmp);
+            }
+        }
+        Libro tmp = arr.get(i + 1);
+        arr.set(i + 1, arr.get(high));
+        arr.set(high, tmp);
+        return i + 1;
+    }
+
     
 }

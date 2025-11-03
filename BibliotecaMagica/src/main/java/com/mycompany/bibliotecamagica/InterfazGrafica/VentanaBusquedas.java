@@ -29,7 +29,14 @@ public class VentanaBusquedas extends javax.swing.JInternalFrame {
     public VentanaBusquedas(Control control, Biblioteca biblio) {
         this.control = control;
         this.biblio = biblio;
-        initComponents();
+        initComponents();setIconifiable(true);
+        setResizable(true);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setClosable(true);
+        setIconifiable(true);
+        setResizable(true);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
         grpBotones.add(btnIsbn);
         grpBotones.add(btnTitulo);
         grpBotones.add(btnGenero);

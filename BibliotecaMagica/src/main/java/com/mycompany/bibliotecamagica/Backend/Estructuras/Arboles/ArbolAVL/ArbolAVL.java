@@ -4,6 +4,8 @@ package com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolAVL;
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolAVL.NodoAVL;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Lista.ListaEnlazada;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -200,10 +202,65 @@ public class ArbolAVL {
         raiz = insertarRecursivo(raiz, titulo, libro);
     }
     
-    //Aqui generare la grafica.
-
     public NodoAVL getRaiz() {
         return raiz;
+    }
+    
+    public void generarGraphviz(String nombreArchivoDOT, String nombreImagen) {
+        try (FileWriter archivo = new FileWriter(nombreArchivoDOT)) {
+            archivo.write("digraph G {\n");
+            archivo.write("    node [shape=box, style=filled, color=lightblue];\n");
+            generarGraphvizRecursivo(raiz, archivo);
+            archivo.write("}\n");
+        } catch (IOException e) {
+            System.out.println("⚠️ No se pudo escribir el archivo DOT: " + e.getMessage());
+            return;
+        }
+
+        try {
+            String comando = "dot -Tsvg " + nombreArchivoDOT + " -o " + nombreImagen;
+            Process proceso = Runtime.getRuntime().exec(comando);
+            proceso.waitFor();
+
+            if (proceso.exitValue() == 0) {
+                System.out.println("✅ Imagen generada correctamente: " + nombreImagen);
+            } else {
+                System.out.println("❌ Error al generar la imagen con Graphviz.");
+            }
+
+        } catch (IOException | InterruptedException e) {
+            System.out.println("⚠️ Error al ejecutar Graphviz: " + e.getMessage());
+        }
+    }
+
+    private void generarGraphvizRecursivo(NodoAVL nodo, FileWriter archivo) throws IOException {
+        if (nodo != null) {
+            String titulo = limpiarTexto(nodo.getLibro().getTitulo());
+
+            archivo.write("    \"" + titulo + "\" [label=\"" + titulo + "\"];\n");
+
+            if (nodo.getIzq() != null) {
+                String izq = limpiarTexto(nodo.getIzq().getLibro().getTitulo());
+                archivo.write("    \"" + titulo + "\" -> \"" + izq + "\";\n");
+                generarGraphvizRecursivo(nodo.getIzq(), archivo);
+            }
+
+            if (nodo.getDer() != null) {
+                String der = limpiarTexto(nodo.getDer().getLibro().getTitulo());
+                archivo.write("    \"" + titulo + "\" -> \"" + der + "\";\n");
+                generarGraphvizRecursivo(nodo.getDer(), archivo);
+            }
+        }
+    }
+
+    private String limpiarTexto(String texto) {
+        if (texto == null) return "";
+        return texto.replace("\"", "'")
+                    .replace("\\", "")
+                    .replace("\n", " ")
+                    .replace("{", "(")
+                    .replace("}", ")")
+                    .trim();
     }
     
 }

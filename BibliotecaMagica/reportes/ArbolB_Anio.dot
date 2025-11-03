@@ -1,0 +1,5 @@
+digraph ArbolB {
+    node [shape=record, fontsize=10, style=filled, fillcolor="lightblue"];
+    rankdir=TB;
+    n1 [label="{1967}"];
+}

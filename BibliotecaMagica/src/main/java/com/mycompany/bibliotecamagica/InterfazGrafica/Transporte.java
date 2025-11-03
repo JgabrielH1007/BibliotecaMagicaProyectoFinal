@@ -27,23 +27,26 @@ public class Transporte extends javax.swing.JInternalFrame {
         initComponents();
         Timer timer = new Timer(500, e -> actualizarListas());
         timer.start();
+        actualizarListas();
+
     }
     
     public void actualizarListas() {
         SwingUtilities.invokeLater(() -> {
             DefaultListModel<String> modeloIngreso = new DefaultListModel<>();
-            for (Libro libro : biblio.getColaIngreso().toList()) {
-                modeloIngreso.addElement(libro.getTitulo());
-            }
-
             DefaultListModel<String> modeloTransporte = new DefaultListModel<>();
-            for (Libro libro : biblio.getColaTraspaso().toList()) {
-                modeloTransporte.addElement(libro.getTitulo());
-            }
-
             DefaultListModel<String> modeloSalida = new DefaultListModel<>();
-            for (Libro libro : biblio.getColaSalida().toList()) {
-                modeloSalida.addElement(libro.getTitulo());
+
+            synchronized (biblio) {
+                for (Libro libro : biblio.getColaIngreso().toList()) {
+                    modeloIngreso.addElement(libro.getTitulo());
+                }
+                for (Libro libro : biblio.getColaTraspaso().toList()) {
+                    modeloTransporte.addElement(libro.getTitulo());
+                }
+                for (Libro libro : biblio.getColaSalida().toList()) {
+                    modeloSalida.addElement(libro.getTitulo());
+                }
             }
 
             colaIngreso.setModel(modeloIngreso);
@@ -51,6 +54,7 @@ public class Transporte extends javax.swing.JInternalFrame {
             colaSalida.setModel(modeloSalida);
         });
     }
+
 
     
     /**

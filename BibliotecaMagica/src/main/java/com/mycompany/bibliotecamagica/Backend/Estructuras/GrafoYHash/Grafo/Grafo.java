@@ -5,8 +5,11 @@
 package com.mycompany.bibliotecamagica.Backend.Estructuras.GrafoYHash.Grafo;
 
 import com.mycompany.bibliotecamagica.Backend.Entidades.Biblioteca;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -238,6 +241,77 @@ public class Grafo {
 
         return conexiones;
     }
+    
+    public void generarGraphviz(String nombreArchivoDot, String nombreArchivoImagen) {
+        if (vertices.isEmpty()) {
+            JOptionPane.showMessageDialog(null, 
+                "⚠️ El grafo está vacío: no se generará archivo DOT.",
+                "Grafo vacío", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try (FileWriter archivo = new FileWriter(nombreArchivoDot)) {
+            archivo.write("graph GrafoBibliotecas {\n");
+            archivo.write("  node [shape=circle, style=filled, color=lightblue];\n");
+            archivo.write("  edge [color=gray50];\n");
+            archivo.write("  layout=neato;\n"); // usa disposición natural
+
+            // 🔹 Escribir nodos
+            for (Biblioteca b : vertices) {
+                archivo.write("  \"" + escapeLabel(b.getId()) + "\" "
+                            + "[label=\"" + escapeLabel(b.getNombre()) + "\"];\n");
+            }
+
+            // 🔹 Escribir conexiones (bidireccionales)
+            for (int i = 0; i < vertices.size(); i++) {
+                for (int j = i + 1; j < vertices.size(); j++) {
+                    if (matrizTiempo[i][j] != 0 || matrizCosto[i][j] != 0) {
+                        String id1 = escapeLabel(vertices.get(i).getId());
+                        String id2 = escapeLabel(vertices.get(j).getId());
+                        archivo.write("  \"" + id1 + "\" -- \"" + id2 + "\" "
+                                    + "[label=\"T:" + matrizTiempo[i][j] + " | C:" + matrizCosto[i][j] + "\"];\n");
+                    }
+                }
+            }
+
+            archivo.write("}\n");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, 
+                "❌ Error al generar archivo DOT: " + e.getMessage(),
+                "Error Graphviz", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Ejecutar Graphviz
+        try {
+            String comando = "dot -Tsvg \"" + nombreArchivoDot + "\" -o \"" + nombreArchivoImagen + "\"";
+            Process proceso = Runtime.getRuntime().exec(comando);
+            proceso.waitFor();
+
+            if (proceso.exitValue() == 0) {
+                JOptionPane.showMessageDialog(null,
+                    "✅ Imagen del grafo generada correctamente: " + nombreArchivoImagen,
+                    "Graphviz", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                    "⚠️ Error al ejecutar Graphviz. Verifica que 'dot' esté instalado y en el PATH.",
+                    "Error Graphviz", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (IOException | InterruptedException e) {
+            JOptionPane.showMessageDialog(null,
+                "⚠️ Error al ejecutar Graphviz: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String escapeLabel(String s) {
+        if (s == null) return "";
+        return s.replace("\"", "'")
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .trim();
+    }
+
 
     
 }

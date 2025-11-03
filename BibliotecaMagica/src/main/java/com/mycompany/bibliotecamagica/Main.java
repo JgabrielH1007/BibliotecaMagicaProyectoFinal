@@ -4,13 +4,16 @@
 
 package com.mycompany.bibliotecamagica;
 
+import com.mycompany.bibliotecamagica.InterfazGrafica.VentanaPrincipal;
+
 /**
  *
  * @author gabrielh
  */
-public class main {
+public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        
+        java.awt.EventQueue.invokeLater(() -> new VentanaPrincipal().setVisible(true));
     }
 }

@@ -1,0 +1,4 @@
+digraph G {
+    node [shape=box, style=filled, color=lightblue];
+    "Cien años de soledad" [label="Cien años de soledad"];
+}

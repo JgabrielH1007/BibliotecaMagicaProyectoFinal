@@ -7,6 +7,8 @@ package com.mycompany.bibliotecamagica.InterfazGrafica;
 import com.mycompany.bibliotecamagica.Backend.Control;
 import com.mycompany.bibliotecamagica.Backend.Entidades.Biblioteca;
 import java.awt.Dimension;
+import java.io.File;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,8 +19,10 @@ public class VentanaLibreria extends javax.swing.JFrame {
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaLibreria.class.getName());
     private Control control;
     private Biblioteca biblio;
-    public VentanaLibreria(Control control) {
+    private VentanaPrincipal pr;
+    public VentanaLibreria(Control control, VentanaPrincipal pr) {
         this.control = control;
+        this.pr = pr;
         initComponents();
         llenarComboBox();
         actualizarBibliotecaSeleccionada();
@@ -38,6 +42,7 @@ public class VentanaLibreria extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -70,6 +75,11 @@ public class VentanaLibreria extends javax.swing.JFrame {
         });
 
         jButton5.setText("GENERAR GRAFICAS DE ESTRUCTURAS");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         jButton6.setText("LISTAR LIBROS");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
@@ -102,6 +112,13 @@ public class VentanaLibreria extends javax.swing.JFrame {
             .addGap(0, 289, Short.MAX_VALUE)
         );
 
+        jButton4.setText("Atras <<--");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -133,7 +150,11 @@ public class VentanaLibreria extends javax.swing.JFrame {
                             .addComponent(jButton7)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(jButton5))))
-                .addGap(0, 25, Short.MAX_VALUE))
+                .addGap(0, 64, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton4)
+                .addGap(34, 34, 34))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -155,7 +176,9 @@ public class VentanaLibreria extends javax.swing.JFrame {
                     .addComponent(jButton5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addGap(27, 27, 27)
+                .addComponent(jButton4)
+                .addContainerGap(28, Short.MAX_VALUE))
         );
 
         pack();
@@ -202,6 +225,15 @@ public class VentanaLibreria extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+        if (biblio == null) {
+            JOptionPane.showMessageDialog(this,
+                "⚠️ No hay una biblioteca seleccionada.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        EliminacionLibro dialog = new EliminacionLibro(this, true, biblio);
+        dialog.setLocationRelativeTo(this);         dialog.setVisible(true);      
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -265,6 +297,59 @@ public class VentanaLibreria extends javax.swing.JFrame {
 
         this.pack();
     }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // TODO add your handling code here:
+        try {
+        // 📂 Carpeta base de salida
+        String basePath = "reportes/";
+        File carpeta = new File(basePath);
+        if (!carpeta.exists()) {
+            carpeta.mkdirs();
+        }
+
+        // Archivos DOT y SVG por estructura
+        String dotAnio = basePath + "ArbolB_Anio.dot";
+        String imgAnio = basePath + "ArbolB_Anio.svg";
+
+        String dotGenero = basePath + "ArbolBPlus_Genero.dot";
+        String imgGenero = basePath + "ArbolBPlus_Genero.svg";
+
+        String dotTitulo = basePath + "ArbolAVL_Titulo.dot";
+        String imgTitulo = basePath + "ArbolAVL_Titulo.svg";
+
+        String dotGrafo = basePath + "GrafoBibliotecas.dot";
+        String imgGrafo = basePath + "GrafoBibliotecas.svg";
+
+        // 🧩 Generar cada estructura
+        if (biblio.getArbolAnio() != null)
+            biblio.getArbolAnio().generarGraphviz(dotAnio, imgAnio);
+
+        if (biblio.getArbolGenero() != null)
+            biblio.getArbolGenero().generarGraphviz(dotGenero, imgGenero);
+
+        if (biblio.getArbolTitulo() != null)
+            biblio.getArbolTitulo().generarGraphviz(dotTitulo, imgTitulo);
+
+        if (control != null && control.getGr() != null)
+            control.getGr().generarGraphviz(dotGrafo, imgGrafo);
+
+        JOptionPane.showMessageDialog(this,
+            "✅ Archivos Graphviz generados correctamente en la carpeta:\n" + basePath,
+            "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "❌ Error al generar las gráficas: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+        this.setVisible(false);
+        pr.setVisible(true);
+    }//GEN-LAST:event_jButton4ActionPerformed
     
     private void llenarComboBox() {
         menuLibrerias.removeAllItems(); 
@@ -277,6 +362,7 @@ public class VentanaLibreria extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;

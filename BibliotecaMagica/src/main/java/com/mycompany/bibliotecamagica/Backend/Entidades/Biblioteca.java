@@ -40,7 +40,7 @@ public class Biblioteca {
         arbolTitulo = new ArbolAVL();
         arbolAnio = new ArbolB();
         arbolGenero = new ArbolBPlus(3);
-        tabla = new TablaHash(900);
+        tabla = new TablaHash(1250);
     }
     
     

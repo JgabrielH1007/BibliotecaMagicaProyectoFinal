@@ -1,0 +1,13 @@
+graph GrafoBibliotecas {
+  node [shape=circle, style=filled, color=lightblue];
+  edge [color=gray50];
+  layout=neato;
+  "A-101" [label="Almacén Principal"];
+  "B-205" [label="Centro de Distribución"];
+  "C-309" [label="Plataforma Logística Sur"];
+  "D-412" [label="Depósito Temporal"];
+  "A-101" -- "B-205" [label="T:100 | C:250.0"];
+  "A-101" -- "C-309" [label="T:150 | C:400.0"];
+  "B-205" -- "C-309" [label="T:305 | C:150.0"];
+  "B-205" -- "D-412" [label="T:800 | C:320.0"];
+}

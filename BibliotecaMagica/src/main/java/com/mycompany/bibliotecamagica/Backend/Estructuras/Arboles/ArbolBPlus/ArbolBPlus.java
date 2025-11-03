@@ -6,10 +6,13 @@ package com.mycompany.bibliotecamagica.Backend.Estructuras.Arboles.ArbolBPlus;
 
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Lista.ListaEnlazada;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -181,4 +184,80 @@ public class ArbolBPlus {
         return false;
     }
     
+    public void generarGraphviz(String nombreArchivoDot, String nombreArchivoImagen) {
+        if (raiz == null) {
+            JOptionPane.showMessageDialog(null,
+                    "⚠️ Árbol vacío: no se genera archivo DOT.",
+                    "Árbol B+", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try (FileWriter archivo = new FileWriter(nombreArchivoDot)) {
+            archivo.write("digraph G {\n");
+            archivo.write("  node [shape=record, fontsize=10, style=filled, fillcolor=\"lightgoldenrod1\"];\n");
+            generarGraphvizRec(raiz, archivo);
+            archivo.write("}\n");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                    "❌ Error al crear archivo DOT: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Ejecutar Graphviz para generar la imagen
+        try {
+            String comando = "dot -Tsvg \"" + nombreArchivoDot + "\" -o \"" + nombreArchivoImagen + "\"";
+            Process proceso = Runtime.getRuntime().exec(comando);
+            proceso.waitFor();
+
+            if (proceso.exitValue() == 0) {
+                JOptionPane.showMessageDialog(null,
+                        "✅ Imagen generada correctamente: " + nombreArchivoImagen,
+                        "Graphviz", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "⚠️ Error al ejecutar Graphviz. Verifica que 'dot' esté instalado y en el PATH.",
+                        "Error Graphviz", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (IOException | InterruptedException e) {
+            JOptionPane.showMessageDialog(null,
+                    "⚠️ Error al ejecutar Graphviz: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void generarGraphvizRec(Nodo nodo, FileWriter archivo) throws IOException {
+       if (nodo == null) return;
+
+       archivo.write("  node" + nodo.hashCode() + " [label=\"");
+
+       for (int i = 0; i < nodo.getClaves().size(); i++) {
+           String genero = nodo.getClaves().get(i);
+           archivo.write("<f" + i + "> | " + escapeLabel(genero) + " | ");
+       }
+
+       archivo.write("<f" + nodo.getClaves().size() + ">\"];\n");
+
+       if (!nodo.isEsHoja()) {
+           for (int i = 0; i < nodo.getHijos().size(); i++) {
+               Nodo hijo = nodo.getHijos().get(i);
+               if (hijo != null) {
+                   generarGraphvizRec(hijo, archivo);
+                   archivo.write("  node" + nodo.hashCode() + ":f" + i +
+                                 " -> node" + hijo.hashCode() + ";\n");
+               }
+           }
+       }
+   }
+
+
+
+    private String escapeLabel(String s) {
+        if (s == null) return "";
+        return s.replace("\"", "'")
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .trim();
+    }
 }

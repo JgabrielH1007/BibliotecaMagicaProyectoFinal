@@ -4,24 +4,37 @@
  */
 package com.mycompany.bibliotecamagica.Backend;
 
+
+
 import com.mycompany.bibliotecamagica.Backend.Entidades.Biblioteca;
 import com.mycompany.bibliotecamagica.Backend.Entidades.Libro;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.Cola.Cola;
 import com.mycompany.bibliotecamagica.Backend.Estructuras.GrafoYHash.Grafo.Grafo;
+import javax.swing.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-/**
- *
- * @author gabrielh
- */
+import javax.swing.SwingUtilities;
+
+import javax.swing.JOptionPane;
+
+import javax.swing.SwingUtilities;
+
+import javax.swing.SwingUtilities;
+
 public class GestorDeBiblioteca implements Runnable {
-    private volatile boolean running = false; 
+    private volatile boolean running = false;
     private final Grafo grafo;
     private final List<Biblioteca> bibliotecas;
+    private final ExecutorService executor; 
 
     public GestorDeBiblioteca(Grafo grafo, List<Biblioteca> bibliotecas) {
         this.grafo = grafo;
         this.bibliotecas = bibliotecas;
+        this.executor = Executors.newFixedThreadPool(
+                Math.max(1, Runtime.getRuntime().availableProcessors() / 2)
+        );
     }
 
     @Override
@@ -30,115 +43,134 @@ public class GestorDeBiblioteca implements Runnable {
         System.out.println("🚀 Gestor de bibliotecas iniciado...");
 
         while (running) {
+            boolean huboActividad = false;
+
+            for (Biblioteca b : bibliotecas) {
+                executor.submit(() -> {
+                    boolean ingreso = procesarColaIngreso(b);
+                    boolean salida = procesarColaSalida(b);
+                    boolean traspaso = procesarColaTraspaso(b);
+
+                    if (ingreso || salida || traspaso) {
+                        synchronized (this) {
+                            notifyAll(); 
+                        }
+                    }
+                });
+            }
+
             try {
-                for (Biblioteca b : bibliotecas) {
-                    procesarColaIngreso(b);
-                    procesarColaSalida(b);
-                    procesarColaTraspaso(b);
+                synchronized (this) {
+                    wait(1000);
                 }
-                Thread.sleep(1000); 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.out.println("⚠️ Gestor interrumpido.");
             }
         }
 
+        executor.shutdownNow();
         System.out.println("🛑 Gestor de bibliotecas detenido.");
     }
 
-
-    private void procesarColaIngreso(Biblioteca b) {
+    private boolean procesarColaIngreso(Biblioteca b) {
         Cola cola = b.getColaIngreso();
-        if (cola == null || cola.estaVacia()) return;
+        if (cola == null || cola.estaVacia()) return false;
 
-        Libro libro = (Libro) cola.desencolar();
+        Libro libro;
+        synchronized (cola) {
+            libro = (Libro) cola.desencolar();
+        }
+
         System.out.println("📘 [" + b.getNombre() + "] Procesando ingreso de: " + libro.getTitulo());
 
-        try {
-            Thread.sleep(b.getTiempoIngreso() * 1000L);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        dormirSeguro(b.getTiempoIngreso());
 
-        // Agregar al catálogo y estructuras
-        b.getCatalogo().agregarLibro(libro);
-        b.getArbolTitulo().insertar(libro.getTitulo(), libro);
-        b.getArbolAnio().insertar(libro);
-        b.getArbolGenero().insertar(libro);
-        b.getTabla().insertar(libro);
+        synchronized (b) {
+            b.getCatalogo().agregarLibro(libro);
+            b.getArbolTitulo().insertar(libro.getTitulo(), libro);
+            b.getArbolAnio().insertar(libro);
+            b.getArbolGenero().insertar(libro);
+            b.getTabla().insertar(libro);
+        }
 
         System.out.println("✅ [" + b.getNombre() + "] Libro agregado al catálogo: " + libro.getTitulo());
+        return true;
     }
 
-
-    private void procesarColaSalida(Biblioteca b) {
+    private boolean procesarColaSalida(Biblioteca b) {
         Cola cola = b.getColaSalida();
-        if (cola == null || cola.estaVacia()) return;
+        if (cola == null || cola.estaVacia()) return false;
 
-        Libro libro = (Libro) cola.desencolar();
+        Libro libro;
+        synchronized (cola) {
+            libro = (Libro) cola.desencolar();
+        }
+
         System.out.println("🚚 [" + b.getNombre() + "] Despachando libro: " + libro.getTitulo());
 
-        try {
-            Thread.sleep(b.getIntervaloDespacho() * 1000L);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        dormirSeguro(b.getIntervaloDespacho());
 
         List<Biblioteca> camino = libro.getCamino();
         if (camino == null || camino.isEmpty()) {
             System.out.println("❌ [" + b.getNombre() + "] No hay camino definido para " + libro.getTitulo());
-            return;
+            return false;
         }
 
         Biblioteca siguiente = obtenerSiguienteBiblioteca(b, camino);
-        if (siguiente != null) {
-            if (siguiente.getId().equals(libro.getBibliotecaDestino())) {
+        if (siguiente == null) return false;
+
+        if (siguiente.getId().equals(libro.getBibliotecaDestino())) {
+            synchronized (siguiente) {
                 if (siguiente.getColaIngreso() == null) siguiente.setColaIngreso(new Cola());
                 siguiente.getColaIngreso().encolar(libro);
-                System.out.println("📥 [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() +
-                                   "' llegó a destino, encolado en ingreso.");
-            } else {
+            }
+            System.out.println("📥 [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() + "' llegó a destino (ingreso).");
+        } else {
+            synchronized (siguiente) {
                 if (siguiente.getColaTraspaso() == null) siguiente.setColaTraspaso(new Cola());
                 siguiente.getColaTraspaso().encolar(libro);
-                System.out.println("➡️ [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() +
-                                   "' en tránsito (cola traspaso).");
             }
+            System.out.println("➡️ [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() + "' en tránsito (traspaso).");
         }
+        return true;
     }
 
-
-    private void procesarColaTraspaso(Biblioteca b) {
+    private boolean procesarColaTraspaso(Biblioteca b) {
         Cola cola = b.getColaTraspaso();
-        if (cola == null || cola.estaVacia()) return;
+        if (cola == null || cola.estaVacia()) return false;
 
-        Libro libro = (Libro) cola.desencolar();
+        Libro libro;
+        synchronized (cola) {
+            libro = (Libro) cola.desencolar();
+        }
+
         System.out.println("🔁 [" + b.getNombre() + "] Procesando traspaso de: " + libro.getTitulo());
 
-        try {
-            Thread.sleep(b.getTiempoTraspaso() * 1000L);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        dormirSeguro(b.getTiempoTraspaso());
 
         List<Biblioteca> camino = libro.getCamino();
-        Biblioteca siguiente = obtenerSiguienteBiblioteca(b, camino);
+        if (camino == null) return false;
 
-        if (siguiente != null) {
-            if (siguiente.getId().equals(libro.getBibliotecaDestino())) {
+        Biblioteca siguiente = obtenerSiguienteBiblioteca(b, camino);
+        if (siguiente == null) {
+            System.out.println("⚠️ [" + b.getNombre() + "] No se encontró siguiente biblioteca para " + libro.getTitulo());
+            return false;
+        }
+
+        if (siguiente.getId().equals(libro.getBibliotecaDestino())) {
+            synchronized (siguiente) {
                 if (siguiente.getColaIngreso() == null) siguiente.setColaIngreso(new Cola());
                 siguiente.getColaIngreso().encolar(libro);
-                System.out.println("📥 [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() +
-                                   "' llegó a destino, encolado en ingreso.");
-            } else {
+            }
+            System.out.println("📥 [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() + "' llegó a destino final (ingreso).");
+        } else {
+            synchronized (siguiente) {
                 if (siguiente.getColaTraspaso() == null) siguiente.setColaTraspaso(new Cola());
                 siguiente.getColaTraspaso().encolar(libro);
-                System.out.println("➡️ [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() +
-                                   "' sigue en tránsito (cola traspaso).");
             }
-        } else {
-            System.out.println("⚠️ [" + b.getNombre() + "] No se encontró siguiente biblioteca para " +
-                               libro.getTitulo());
+            System.out.println("➡️ [" + siguiente.getNombre() + "] Libro '" + libro.getTitulo() + "' sigue en tránsito (traspaso).");
         }
+        return true;
     }
 
 
@@ -151,9 +183,20 @@ public class GestorDeBiblioteca implements Runnable {
         return null;
     }
 
+    private void dormirSeguro(int segundos) {
+        try {
+            Thread.sleep(Math.max(100, segundos * 1000L));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     public void detener() {
-        this.running = false;
+        running = false;
+        executor.shutdownNow();
+        SwingUtilities.invokeLater(() ->
+            JOptionPane.showMessageDialog(null, "🛑 Gestor de bibliotecas detenido.", "Gestor detenido", JOptionPane.INFORMATION_MESSAGE)
+        );
     }
 
     public boolean isRunning() {
